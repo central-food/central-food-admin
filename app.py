@@ -69,9 +69,12 @@ def login():
 
     user = None
     if 'refreshToken' in session:
-        user = auth.refresh(session['refreshToken'])
-        if user:
-            return redirect(url_for('dashboard'))
+        try:
+            user = auth.refresh(session['refreshToken'])
+            if user:
+                return redirect(url_for('dashboard'))
+        except:
+            del session['refreshToken']
 
     """implement firebase auth login"""
     if form.validate_on_submit():
@@ -93,17 +96,21 @@ def dashboard():
     """check if user is logged"""
     user = None
     if 'refreshToken' in session:
-        user = auth.refresh(session['refreshToken'])
-    if user:
-        users = db.collection(u'users').get()
-        ong_users = []
-        for user in users:
-            if user.to_dict()['type'] == 'ong':
-                user_dict = user.to_dict()
-                """replace user data document reference by dict"""
-                user_dict['data'] = user_dict['data'].get().to_dict()
-                if user_dict['data']['isApproved'] == False:
-                    ong_users.append(user_dict)
+        try:
+            user = auth.refresh(session['refreshToken'])
+        except:
+            del session['refreshToken']
+            return redirect(url_for('login'))
+
+    users = db.collection(u'users').get()
+    ong_users = []
+    for user in users:
+        if user.to_dict()['type'] == 'ong':
+            user_dict = user.to_dict()
+            """replace user data document reference by dict"""
+            user_dict['data'] = user_dict['data'].get().to_dict()
+            if user_dict['data']['isApproved'] == False:
+                ong_users.append(user_dict)
 
         print(ong_users)
         return render_template('manage.html', ong_users=ong_users)

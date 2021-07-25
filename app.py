@@ -67,6 +67,12 @@ def index():
 def login():
     form = LoginForm(request.form)
 
+    user = None
+    if 'refreshToken' in session:
+        user = auth.refresh(session['refreshToken'])
+        if user:
+            return redirect(url_for('dashboard'))
+
     """implement firebase auth login"""
     if form.validate_on_submit():
         try:

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        {% for user in ong_users %}
+        <div class="user">
+            <h2 class="title">{{ user.data.name }}</h2>
+            <p>CNPJ: {{ user.data.cnpj }}</p>
+            <p>Email: {{ user.email }}</p>
+            <p>Telefone: {{ user.data.phoneNumber }}</p>
+            <a href="{{ url_for('approve_user', email=user.email) }}"><button
+                    class="approve-button">Aprovar</button></a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
 apps:
-- name: GetStartedPython
+- name: joao-food-admin
   random-route: true
   memory: 128M

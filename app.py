@@ -138,6 +138,10 @@ def approve_user():
     else:
         return redirect(url_for('login'))
 
+@app.route('/funcionou')
+def funcionou():
+    return '<h1>Funcionou</h1>'
+
 
 def main():
     port = int(os.environ.get("PORT", 5000))

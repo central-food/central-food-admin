@@ -1,4 +1,4 @@
-apps:
-- name: joao-food-admin
-  random-route: true
-  memory: 128M
+applications:
+ - name: joao-food-admin
+   random-route: true
+   memory: 128M

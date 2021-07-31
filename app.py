@@ -8,12 +8,14 @@ from firebase_admin import credentials, firestore, initialize_app
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, validators
+from twilio.rest import Client
+
 # Initialize Flask App
 app = Flask(__name__)
-app.secret_key=os.environ.get('SECRET_KEY', 'my-secret-key')
-
+app.secret_key = os.environ.get('SECRET_KEY', 'my-secret-key')
 
 dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 
 class LoginForm(FlaskForm):
     email = StringField('Email')
@@ -31,9 +33,8 @@ class LoginForm(FlaskForm):
         for admin in admins:
             if admin.to_dict()['email'] == self.email.data:
                 return True
-        
-        return False
 
+        return False
 
 
 cred = credentials.Certificate({
@@ -56,12 +57,13 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
 
-
 db = firestore.client()
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -86,7 +88,6 @@ def login():
             flash('Invalid email or password')
 
     return render_template('login.html', form=form)
-
 
 
 @app.route('/manage')
@@ -138,14 +139,37 @@ def approve_user():
     else:
         return redirect(url_for('login'))
 
-@app.route('/funcionou')
-def funcionou():
-    return '<h1>Funcionou</h1>'
+
+@app.route('/send-sms/<string:product_code>')
+def send_sms(product_code):
+    products = db.collection(u'products')
+    product = products.document(product_code).get()
+
+    users = db.collection(u'ongs').get()
+
+    message = f'New product announced: {product.to_dict()["name"]} {product.to_dict()["amount"]}'
+
+    """filter users by email"""
+    for user in users:
+        try:
+            if user.to_dict()['sms_notification']:
+                """Using twilio to send sms"""
+                client = Client(os.environ.get('TWILIO_ACCOUNT_SID'), os.environ.get('TWILIO_AUTH_TOKEN'))
+                message = client.messages.create(to=user.to_dict()['phoneNumber'].replace(" ", ""),
+                                                 from_=os.environ.get('TWILIO_NUMBER'),
+                                                 body=message)
+                print(message.sid)
+        except KeyError:
+            pass
+
+    """return result sucess 200 ok"""
+    return jsonify({"result": "success"}), 200
 
 
 def main():
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
 
 if __name__ == '__main__':
     main()
